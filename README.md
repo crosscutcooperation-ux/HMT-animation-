@@ -1,4 +1,4 @@
-# HMT In Motion — Mobile Scroll Smoothness: RESOLVED ✅
+# HMT In Motion — Mobile Scroll Smoothness: RESOLVED 
 
 ## Executive Summary
 
