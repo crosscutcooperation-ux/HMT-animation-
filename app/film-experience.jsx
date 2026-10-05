@@ -95,13 +95,6 @@ const chapters = [
   },
 ];
 
-function formatTime(seconds) {
-  const safeSeconds = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
-  const minutes = Math.floor(safeSeconds / 60);
-  const remainder = Math.floor(safeSeconds % 60);
-  return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
-}
-
 export default function FilmExperience() {
   const rootRef = useRef(null);
   const filmRef = useRef(null);
@@ -114,25 +107,17 @@ export default function FilmExperience() {
     if (!root || !film || !stage) return;
 
     const video = stage.querySelector(".film-video");
-    const progressTrack = stage.querySelector(".progress-track");
-    const currentReadout = stage.querySelector("[data-current]");
-    const durationReadout = stage.querySelector("[data-duration]");
     const chapterCopy = stage.querySelector(".chapter-copy");
     const title = stage.querySelector("[data-title]");
     const kicker = stage.querySelector("[data-kicker]");
     const caption = stage.querySelector("[data-caption]");
     const processNote = stage.querySelector("[data-process-note]");
-    const playToggle = stage.querySelector(".play-toggle");
-    const playLabel = stage.querySelector("[data-play-label]");
     const videoError = stage.querySelector(".video-error");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const listeners = new AbortController();
 
     let scrollProgress = 0;
     let lastRenderTimestamp = null;
-    let isPlaying = false;
-    let playbackScrollProgress = 0;
-    let isSeekingFromScroll = false;
     let activeChapter = -1;
     let frameRequested = false;
     let duration = 0;
@@ -197,32 +182,18 @@ export default function FilmExperience() {
       animateChapterCopy(nextChapter);
     }
 
-    function updateProgress(progress, time) {
-      const percent = Math.round(progress * 100);
-      progressTrack.value = String(Math.round(progress * Number(progressTrack.max)));
-      progressTrack.style.setProperty("--progress", `${percent}%`);
-      progressTrack.setAttribute("aria-valuetext", formatTime(time));
-      currentReadout.textContent = formatTime(time);
-    }
-
     function seekToProgress(progress) {
-      if (!Number.isFinite(video.duration) || video.duration <= 0 || isPlaying) return;
+      if (!Number.isFinite(video.duration) || video.duration <= 0) return;
       const targetTime = progress * video.duration;
 
       if (smoothMobileSeeking) {
         mobileSeekTargetTime = targetTime;
-        isSeekingFromScroll = true;
         scheduleMobileSeek();
         return;
       }
 
       if (Math.abs(video.currentTime - targetTime) < 0.04) return;
-      isSeekingFromScroll = true;
       video.currentTime = targetTime;
-      window.clearTimeout(seekTimeout);
-      seekTimeout = window.setTimeout(() => {
-        isSeekingFromScroll = false;
-      }, 120);
     }
 
     function scheduleMobileSeek() {
@@ -243,7 +214,6 @@ export default function FilmExperience() {
       mobileSeekTargetTime = null;
       
       if (Math.abs(video.currentTime - targetTime) < 0.04) {
-        isSeekingFromScroll = false;
         return;
       }
 
@@ -266,13 +236,11 @@ export default function FilmExperience() {
       mobileSeekInFlight = false;
       if (mobileSeekTargetTime !== null) {
         scheduleMobileSeek();
-        return;
       }
-      isSeekingFromScroll = false;
     }
 
     function finishMobileScroll() {
-      if (!smoothMobileSeeking || isPlaying) return;
+      if (!smoothMobileSeeking) return;
       mobileSeekTargetTime = scrollProgress * duration;
       scheduleMobileSeek();
     }
@@ -306,13 +274,9 @@ export default function FilmExperience() {
       stage.style.setProperty("--video-tilt-y", `${(pointerX * tiltFactor * 1.6).toFixed(2)}deg`);
       stage.style.setProperty("--video-scale", (1.045 + Math.abs(scrollTilt) * 0.012).toFixed(4));
 
-      if (!isPlaying) {
-        const time = scrollProgress * duration;
-        updateProgress(scrollProgress, time);
-        updateChapter(scrollProgress);
-        seekToProgress(scrollProgress);
-      }
-      if (!isPlaying && Math.abs(targetProgress - scrollProgress) > 0.0001) {
+      updateChapter(scrollProgress);
+      seekToProgress(scrollProgress);
+      if (Math.abs(targetProgress - scrollProgress) > 0.0001) {
         requestRender();
       }
     }
@@ -323,41 +287,7 @@ export default function FilmExperience() {
       frameRequestId = window.requestAnimationFrame(render);
     }
 
-    function setProgressFromScroll(progress) {
-      const boundedProgress = Math.min(1, Math.max(0, progress));
-      const filmTop = window.scrollY + film.getBoundingClientRect().top;
-      const filmScrollDistance = film.offsetHeight - window.innerHeight;
-      window.scrollTo({
-        top: filmTop + boundedProgress * filmScrollDistance,
-        behavior: "instant",
-      });
-      requestRender();
-    }
-
-    function setPlaying(playing) {
-      isPlaying = playing;
-      playToggle.setAttribute("aria-pressed", String(playing));
-      playToggle.setAttribute("aria-label", playing ? "Pause film" : "Play film");
-      playLabel.textContent = playing ? "PAUSE FILM" : "PLAY FILM";
-      if (playing) {
-        playbackScrollProgress = getScrollProgress();
-        video.play().catch((error) => {
-          isPlaying = false;
-          playToggle.setAttribute("aria-pressed", "false");
-          playToggle.setAttribute("aria-label", "Play film");
-          playLabel.textContent = "PLAY FILM";
-          console.error("Unable to play the film:", error);
-        });
-        return;
-      }
-      video.pause();
-      requestRender();
-    }
-
     function handleScroll() {
-      if (isPlaying && Math.abs(getScrollProgress() - playbackScrollProgress) > 0.0005) {
-        setPlaying(false);
-      }
       if (smoothMobileSeeking) {
         window.clearTimeout(seekTimeout);
         seekTimeout = window.setTimeout(finishMobileScroll, 140);
@@ -376,28 +306,8 @@ export default function FilmExperience() {
     function handleLoadedMetadata() {
       if (Number.isFinite(video.duration)) {
         duration = video.duration;
-        durationReadout.textContent = formatTime(duration);
       }
       requestRender();
-    }
-
-    function handleTimeUpdate() {
-      if (!isPlaying || isSeekingFromScroll) return;
-      const progress = video.duration ? video.currentTime / video.duration : 0;
-      updateProgress(progress, video.currentTime);
-      updateChapter(progress);
-    }
-
-    function handleProgressKeydown(event) {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-      event.preventDefault();
-      const current = Number(progressTrack.value) / Number(progressTrack.max);
-      const next = event.key === "Home"
-        ? 0
-        : event.key === "End"
-          ? 1
-          : current + (event.key === "ArrowRight" ? 0.01 : -0.01);
-      setProgressFromScroll(next);
     }
 
     const options = { signal: listeners.signal };
@@ -410,19 +320,11 @@ export default function FilmExperience() {
       requestRender();
     }, options);
     video.addEventListener("loadedmetadata", handleLoadedMetadata, options);
-    video.addEventListener("timeupdate", handleTimeUpdate, options);
     video.addEventListener("seeked", handleMobileSeeked, options);
-    video.addEventListener("ended", () => setPlaying(false), options);
     video.addEventListener("error", () => {
       videoError.hidden = false;
       console.error("The film video could not be decoded. The browser may not support this video format.");
     }, options);
-    playToggle.addEventListener("click", () => setPlaying(!isPlaying), options);
-    progressTrack.addEventListener("input", () => {
-      if (isPlaying) setPlaying(false);
-      setProgressFromScroll(Number(progressTrack.value) / Number(progressTrack.max));
-    }, options);
-    progressTrack.addEventListener("keydown", handleProgressKeydown, options);
 
     if (video.readyState >= 1) handleLoadedMetadata();
     requestRender();
@@ -481,28 +383,6 @@ export default function FilmExperience() {
               hidden
             />
 
-            <div className="film-bottomline">
-              <span className="time-readout">
-                <span data-current>00:00</span><span className="time-divider"> / </span><span data-duration>00:00</span>
-              </span>
-              <div className="progress-control">
-                <label className="sr-only" htmlFor="film-progress">Film position</label>
-                <input
-                  className="progress-track"
-                  id="film-progress"
-                  type="range"
-                  min="0"
-                  max="1000"
-                  defaultValue="0"
-                  step="1"
-                  aria-valuetext="00:00"
-                />
-              </div>
-              <button className="play-toggle" type="button" aria-label="Play film" aria-pressed="false">
-                <span className="play-icon" aria-hidden="true" />
-                <span data-play-label>PLAY FILM</span>
-              </button>
-            </div>
             <p className="video-error" role="status" hidden>
               This browser can’t decode the video. Please use an MP4 (H.264) video for browser playback.
             </p>
