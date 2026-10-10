@@ -7,91 +7,100 @@ const chapters = [
     time: 0,
     tone: "site",
     title: "From bare land<br />to production <em>start-up.</em>",
-    position: "top-left",
-    kicker: "ENGINEERING & PROJECT DEVELOPMENT",
-    caption: "Land, utilities and building constraints measured before drawings lock.",
+    kicker: "GREENFIELD / ONE PROGRAMME",
+    caption: "Engineering, civil works, machine setup and production readiness—held as one programme.",
+    copy: { x: "6vw", y: "9svh", width: "min(39vw, 570px)", align: "left" },
+    mobilePosition: "top",
   },
   {
-    time: 13,
+    time: 4.8,
     tone: "civil",
-    title: "Land &<br /><em>civil.</em>",
-    position: "top-right",
-    kicker: "LAND & CIVIL",
-    caption: "Survey, infrastructure, PEB buildings, epoxy floors and the utilities a hall needs before a machine arrives.",
+    title: "The hall follows<br />the <em>machine plan.</em>",
+    kicker: "CIVIL & STRUCTURAL",
+    caption: "PEB span, hook height and floor loading are set with the equipment list.",
+    copy: { x: "6vw", y: "9svh", width: "min(38vw, 560px)", align: "left" },
+    mobilePosition: "top",
+    note: { text: "SPAN / HOOK HEIGHT / FLOOR LOAD", x: "62vw", y: "76svh", side: "right" },
   },
   {
-    time: 18,
-    tone: "steel",
-    title: "PEB<br /><em>buildings.</em>",
-    position: "bottom-left",
-    kicker: "PEB BUILDINGS",
-    caption: "Pre-engineered structures sized for cranes, spans and future bays.",
-    note: "CRANE CLEARANCE",
-    notePosition: "top-right",
-  },
-  {
-    time: 25,
-    tone: "epoxy",
-    title: "Epoxy <em>flooring.</em>",
-    position: "top-right",
-    kicker: "EPOXY FLOORING",
-    caption: "Load-rated, chemical-resistant floors finished before machines are set.",
-    note: "FINISH BEFORE MACHINE SET",
-    notePosition: "bottom-left",
-  },
-  {
-    time: 39,
+    time: 13.7,
     tone: "delivery",
-    title: "New machine<br /><em>procurement.</em>",
-    position: "top-left",
-    kicker: "NEW MACHINE PROCUREMENT",
-    caption: "OEM specification, vendor control and delivery locked to the construction schedule.",
+    title: "Machines arrive<br /><em>on sequence.</em>",
+    kicker: "MACHINE LOGISTICS",
+    caption: "Procurement and transportation stay locked to the construction schedule.",
+    copy: { x: "6vw", y: "10svh", width: "min(36vw, 520px)", align: "left" },
+    mobilePosition: "top",
+    note: { text: "DELIVERY WINDOW / LOCKED", x: "65vw", y: "76svh", side: "right" },
   },
   {
-    time: 50,
+    time: 16.7,
     tone: "handling",
-    title: "Machine<br /><em>transportation.</em>",
-    position: "top-right",
-    kicker: "MACHINE TRANSPORTATION",
-    caption: "Machines are transported to the planned installation bays.",
-    note: "LIFT PLAN",
-    notePosition: "bottom-left",
+    title: "Controlled unload.<br /><em>One interface.</em>",
+    kicker: "OEM COORDINATION",
+    caption: "Builders, vendors and the owner’s engineering team move to one installation plan.",
+    copy: { x: "59vw", y: "52svh", width: "min(35vw, 500px)", align: "right" },
+    mobilePosition: "bottom",
+    note: { text: "CRATE A / MACHINE BASE", x: "6vw", y: "19svh", side: "left" },
   },
   {
-    time: 70,
-    tone: "crane",
-    title: "EOT crane supply<br /><em>& installation.</em>",
-    position: "top-left",
-    kicker: "EOT CRANE SUPPLY & INSTALLATION",
-    caption: "Gantry, runway and crane commissioning so the hall can lift from day one.",
+    time: 25.4,
+    tone: "staging",
+    title: "Parts staged<br /><em>in build order.</em>",
+    kicker: "INSTALLATION READINESS",
+    caption: "Every lift is sequenced before the first component leaves its crate.",
+    copy: { x: "59vw", y: "9svh", width: "min(35vw, 500px)", align: "right" },
+    mobilePosition: "top",
+    note: { text: "A → B → C / BUILD SEQUENCE", x: "6vw", y: "73svh", side: "left" },
   },
   {
-    time: 78,
+    time: 28.5,
     tone: "installation",
     title: "Machine<br /><em>installation.</em>",
-    position: "top-right",
-    kicker: "MACHINE INSTALLATION",
-    caption: "Machine installation, commissioning and production line integration.",
+    kicker: "BASE & DATUM",
+    caption: "The base is positioned first—ready for level, alignment and assembly.",
+    copy: { x: "6vw", y: "9svh", width: "min(35vw, 500px)", align: "left" },
+    mobilePosition: "top",
+    note: { text: "BASE DATUM", x: "66vw", y: "74svh", side: "right" },
   },
   {
-    time: 101,
+    time: 32.1,
+    tone: "crane",
+    title: "Lift. Align.<br /><em>Set.</em>",
+    kicker: "CONTROLLED ASSEMBLY",
+    caption: "Spindle, controls and gantry are placed against the machine datum.",
+    copy: { x: "6vw", y: "11svh", width: "min(34vw, 490px)", align: "left" },
+    mobilePosition: "top",
+    note: { text: "LIFT PLAN / C.G.", x: "65vw", y: "71svh", side: "right" },
+  },
+  {
+    time: 40.2,
+    tone: "mechanical",
+    title: "Mechanical<br /><em>completion.</em>",
+    kicker: "LINE INTEGRATION",
+    caption: "Machine installation and production line integration move as one workstream.",
+    copy: { x: "6vw", y: "59svh", width: "min(35vw, 510px)", align: "left" },
+    mobilePosition: "bottom",
+    note: { text: "LEVEL / ALIGN / LOCK", x: "66vw", y: "17svh", side: "right" },
+  },
+  {
+    time: 46.8,
     tone: "controls",
-    title: "PLC<br /><em>integration.</em>",
-    position: "top-right",
-    kicker: "PLC INTEGRATION",
-    caption: "Controls, drives and interlocks written to the process narrative.",
-    note: "CONTROLS → DRIVES → INTERLOCKS",
-    notePosition: "bottom-left",
+    title: "PLC & power<br /><em>integration.</em>",
+    kicker: "AUTOMATION & CONTROLS",
+    caption: "Controls, drives and interlocks are written to the process narrative.",
+    copy: { x: "6vw", y: "9svh", width: "min(35vw, 510px)", align: "left" },
+    mobilePosition: "top",
+    note: { text: "L1 / L2 / L3 / N / PE", x: "65vw", y: "73svh", side: "right" },
   },
   {
-    time: 110,
+    time: 50.2,
     tone: "commissioning",
-    title: "Trial production<br /><em>support.</em>",
-    position: "top-left",
-    kicker: "TRIAL PRODUCTION SUPPORT",
-    caption: "PLC integration, automation, trial production and technical support through the first stable runs.",
-    note: "FIRST STABLE RUN",
-    notePosition: "bottom-right",
+    title: "Ready for the<br /><em>first stable run.</em>",
+    kicker: "PRODUCTION READINESS",
+    caption: "Trial production, validation and technical support stay through ramp-up.",
+    copy: { x: "6vw", y: "10svh", width: "min(38vw, 550px)", align: "left" },
+    mobilePosition: "top",
+    note: { text: "HMT / GM 320", x: "68vw", y: "76svh", side: "right" },
   },
 ];
 
@@ -110,8 +119,10 @@ export default function FilmExperience() {
     const chapterCopy = stage.querySelector(".chapter-copy");
     const title = stage.querySelector("[data-title]");
     const kicker = stage.querySelector("[data-kicker]");
+    const chapterStep = stage.querySelector("[data-step]");
     const caption = stage.querySelector("[data-caption]");
     const processNote = stage.querySelector("[data-process-note]");
+    const progressLabel = stage.querySelector("[data-progress-label]");
     const videoError = stage.querySelector(".video-error");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const listeners = new AbortController();
@@ -128,6 +139,7 @@ export default function FilmExperience() {
     let mobileSeekTargetTime = null;
     let lastMobileSeekAt = 0;
     let lastSeekDuration = 0;
+    let progressPercent = -1;
     let videoFrameCallbackId = null;
     const smoothMobileSeeking = window.matchMedia("(max-width: 700px)").matches;
     const baseSeekInterval = 33;
@@ -142,19 +154,31 @@ export default function FilmExperience() {
 
     function animateChapterCopy(chapterIndex) {
       chapterCopy.getAnimations().forEach((animation) => animation.cancel());
+      processNote.getAnimations().forEach((animation) => animation.cancel());
       if (reducedMotion.matches) return;
 
       const entersFromLeft = chapterIndex % 2 === 0;
       chapterCopy.animate(
         [
           {
-            opacity: 0.25,
-            transform: `translate3d(${entersFromLeft ? "-12px" : "12px"}, 0, 28px)`,
+            opacity: 0,
+            filter: "blur(8px)",
+            transform: `translate3d(${entersFromLeft ? "-18px" : "18px"}, 10px, 28px)`,
           },
-          { opacity: 1, transform: "translate3d(0, 0, 28px)" },
+          { opacity: 1, filter: "blur(0)", transform: "translate3d(0, 0, 28px)" },
         ],
-        { duration: 480, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+        { duration: 680, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
       );
+
+      if (!processNote.hidden) {
+        processNote.animate(
+          [
+            { opacity: 0, filter: "blur(4px)" },
+            { opacity: 1, filter: "blur(0)" },
+          ],
+          { duration: 520, delay: 140, fill: "backwards", easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+        );
+      }
     }
 
     function updateChapter(progress) {
@@ -167,17 +191,22 @@ export default function FilmExperience() {
 
       activeChapter = nextChapter;
       const chapter = chapters[nextChapter];
-      stage.dataset.copyPosition = chapter.position;
       stage.dataset.copyTone = chapter.tone;
+      stage.dataset.copyAlign = chapter.copy.align;
+      stage.dataset.mobilePosition = chapter.mobilePosition;
+      stage.style.setProperty("--copy-left", chapter.copy.x);
+      stage.style.setProperty("--copy-top", chapter.copy.y);
+      stage.style.setProperty("--copy-width", chapter.copy.width);
       title.innerHTML = chapter.title;
       caption.textContent = chapter.caption;
       kicker.textContent = chapter.kicker;
-      processNote.textContent = chapter.note || "";
+      chapterStep.textContent = String(nextChapter).padStart(2, "0");
+      processNote.textContent = chapter.note?.text || "";
       processNote.hidden = !chapter.note;
-      if (chapter.notePosition) {
-        processNote.dataset.notePosition = chapter.notePosition;
-      } else {
-        delete processNote.dataset.notePosition;
+      if (chapter.note) {
+        processNote.dataset.noteSide = chapter.note.side;
+        processNote.style.setProperty("--note-left", chapter.note.x);
+        processNote.style.setProperty("--note-top", chapter.note.y);
       }
       animateChapterCopy(nextChapter);
     }
@@ -234,6 +263,9 @@ export default function FilmExperience() {
     function handleMobileSeeked() {
       if (!smoothMobileSeeking) return;
       mobileSeekInFlight = false;
+      if (duration > 0) {
+        updateChapter(video.currentTime / duration);
+      }
       if (mobileSeekTargetTime !== null) {
         scheduleMobileSeek();
       }
@@ -273,8 +305,18 @@ export default function FilmExperience() {
       );
       stage.style.setProperty("--video-tilt-y", `${(pointerX * tiltFactor * 1.6).toFixed(2)}deg`);
       stage.style.setProperty("--video-scale", (1.045 + Math.abs(scrollTilt) * 0.012).toFixed(4));
+      stage.style.setProperty("--film-progress", scrollProgress.toFixed(4));
 
-      updateChapter(scrollProgress);
+      const nextProgressPercent = Math.round(scrollProgress * 100);
+      if (nextProgressPercent !== progressPercent) {
+        progressPercent = nextProgressPercent;
+        progressLabel.textContent = String(progressPercent).padStart(2, "0");
+      }
+
+      const chapterProgress = smoothMobileSeeking && duration > 0
+        ? video.currentTime / duration
+        : scrollProgress;
+      updateChapter(chapterProgress);
       seekToProgress(scrollProgress);
       if (Math.abs(targetProgress - scrollProgress) > 0.0001) {
         requestRender();
@@ -338,6 +380,7 @@ export default function FilmExperience() {
         video.cancelVideoFrameCallback(videoFrameCallbackId);
       }
       chapterCopy.getAnimations().forEach((animation) => animation.cancel());
+      processNote.getAnimations().forEach((animation) => animation.cancel());
       video.pause();
     };
   }, []);
@@ -346,7 +389,18 @@ export default function FilmExperience() {
     <div ref={rootRef}>
       <main id="begin">
         <section ref={filmRef} className="film" id="film" aria-label="Scroll-controlled film">
-          <div ref={stageRef} className="film-stage">
+          <div
+            ref={stageRef}
+            className="film-stage"
+            data-copy-tone={chapters[0].tone}
+            data-copy-align={chapters[0].copy.align}
+            data-mobile-position={chapters[0].mobilePosition}
+            style={{
+              "--copy-left": chapters[0].copy.x,
+              "--copy-top": chapters[0].copy.y,
+              "--copy-width": chapters[0].copy.width,
+            }}
+          >
             <video
               className="film-video"
               preload="auto"
@@ -354,7 +408,7 @@ export default function FilmExperience() {
               playsInline
               aria-label="Full-screen film synchronized with page scroll"
             >
-              <source src="/0001-2840.mkv" type="video/x-matroska" />
+              <source src="/HMT_0001-3120.mkv" type="video/x-matroska" />
               <source src="/hiii.mp4" type="video/mp4" />
             </video>
             <div className="film-grade" aria-hidden="true" />
@@ -363,6 +417,10 @@ export default function FilmExperience() {
 
             <div className="chapter-copy" aria-live="polite" aria-atomic="true">
               <p className="chapter-kicker">
+                <span className="chapter-step">
+                  <span data-step>00</span>
+                  <span aria-hidden="true"> / {String(chapters.length - 1).padStart(2, "0")}</span>
+                </span>
                 <span className="chapter-dot" aria-hidden="true" />
                 <span data-kicker>{chapters[0].kicker}</span>
               </p>
@@ -376,12 +434,16 @@ export default function FilmExperience() {
               </p>
             </div>
 
-            <p
-              className="process-note"
-              data-process-note
-              data-note-position={chapters[0].notePosition}
-              hidden
-            />
+            <p className="process-note" data-process-note hidden />
+
+            <div className="film-progress" aria-hidden="true">
+              <span className="film-progress-name">GREENFIELD / BUILD SEQUENCE</span>
+              <span className="film-progress-track">
+                <span className="film-progress-value" />
+              </span>
+              <span className="film-progress-number" data-progress-label>00</span>
+              <span className="film-progress-unit">%</span>
+            </div>
 
             <p className="video-error" role="status" hidden>
               This browser can’t decode the video. Please use an MP4 (H.264) video for browser playback.
