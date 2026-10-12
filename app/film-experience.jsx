@@ -128,23 +128,23 @@ export default function FilmExperience() {
     const listeners = new AbortController();
 
     let scrollProgress = 0;
-    let lastRenderTimestamp = null;
     let activeChapter = -1;
     let frameRequested = false;
     let duration = 0;
-    let seekTimeout = 0;
     let frameRequestId = 0;
-    let mobileSeekTimerId = 0;
-    let mobileSeekInFlight = false;
-    let mobileSeekTargetTime = null;
-    let lastMobileSeekAt = 0;
+    let seekTimerId = 0;
+    let settleTimerId = 0;
+    let seekInFlight = false;
+    let seekStartedAt = 0;
+    let lastSeekAt = 0;
     let lastSeekDuration = 0;
     let progressPercent = -1;
-    let videoFrameCallbackId = null;
-    const smoothMobileSeeking = window.matchMedia("(max-width: 700px)").matches;
-    const baseSeekInterval = 33;
-    const maxScrollPlaybackRate = 8;
-    const hasVideoFrameCallback = typeof video.requestVideoFrameCallback === "function";
+    let playPending = false;
+    let scrollSettled = true;
+    let lastVisualProgress = -1;
+    const baseSeekInterval = window.matchMedia("(max-width: 700px)").matches ? 75 : 50;
+    const maxPlaybackRate = 4;
+    const maxPlaybackGap = 0.85;
 
     function getScrollProgress() {
       const rect = film.getBoundingClientRect();
@@ -153,6 +153,7 @@ export default function FilmExperience() {
     }
 
     function animateChapterCopy(chapterIndex) {
+      if (stage.classList.contains("film-stage--clean")) return;
       chapterCopy.getAnimations().forEach((animation) => animation.cancel());
       processNote.getAnimations().forEach((animation) => animation.cancel());
       if (reducedMotion.matches) return;
@@ -211,101 +212,76 @@ export default function FilmExperience() {
       animateChapterCopy(nextChapter);
     }
 
-    function seekToProgress(progress) {
-      if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-      const targetTime = progress * video.duration;
-
-      if (smoothMobileSeeking) {
-        mobileSeekTargetTime = targetTime;
-        scheduleMobileSeek();
+    function seekTo(targetTime) {
+      if (seekInFlight || video.seeking) return;
+      const elapsed = performance.now() - lastSeekAt;
+      const interval = Math.max(baseSeekInterval, Math.min(140, lastSeekDuration));
+      if (lastSeekAt && elapsed < interval) {
+        if (!seekTimerId) {
+          seekTimerId = window.setTimeout(() => {
+            seekTimerId = 0;
+            requestRender();
+          }, interval - elapsed);
+        }
         return;
       }
 
-      if (Math.abs(video.currentTime - targetTime) < 0.04) return;
+      video.pause();
+      seekInFlight = true;
+      seekStartedAt = performance.now();
+      lastSeekAt = seekStartedAt;
       video.currentTime = targetTime;
     }
 
-    function scheduleMobileSeek() {
-      if (mobileSeekTimerId || mobileSeekInFlight || mobileSeekTargetTime === null) return;
-      
-      const interval = smoothMobileSeeking 
-        ? Math.max(baseSeekInterval, lastSeekDuration * 1.1)
-        : baseSeekInterval;
-      const wait = Math.max(0, interval - (Date.now() - lastMobileSeekAt));
-      mobileSeekTimerId = window.setTimeout(flushMobileSeek, wait);
+    function handleSeeked() {
+      if (!seekInFlight) return;
+      seekInFlight = false;
+      lastSeekDuration = performance.now() - seekStartedAt;
+      updateChapter(video.currentTime / duration);
+      requestRender();
     }
 
-    function flushMobileSeek() {
-      mobileSeekTimerId = 0;
-      if (mobileSeekInFlight || mobileSeekTargetTime === null || video.seeking) return;
+    function syncVideo() {
+      if (duration <= 0 || seekInFlight || video.seeking) return;
+      const targetTime = Math.min(duration - 0.001, scrollProgress * duration);
+      const gap = targetTime - video.currentTime;
 
-      const targetTime = mobileSeekTargetTime;
-      mobileSeekTargetTime = null;
-      
-      if (Math.abs(video.currentTime - targetTime) < 0.04) {
+      if (reducedMotion.matches) {
+        if (Math.abs(gap) > 0.04) seekTo(targetTime);
+        else video.pause();
+        return;
+      }
+      if (gap < (scrollSettled ? -0.04 : -0.12) || gap > maxPlaybackGap) {
+        seekTo(targetTime);
+        return;
+      }
+      if (gap <= 0.05) {
+        video.pause();
         return;
       }
 
-      mobileSeekInFlight = true;
-      const seekStartTime = Date.now();
-      lastMobileSeekAt = seekStartTime;
-      video.currentTime = targetTime;
-      
-      if (hasVideoFrameCallback && videoFrameCallbackId === null) {
-        videoFrameCallbackId = video.requestVideoFrameCallback(() => {
-          videoFrameCallbackId = null;
-          lastSeekDuration = Math.max(20, Date.now() - seekStartTime);
-          handleMobileSeeked();
+      // Let the decoder play consecutive frames while the scroll position moves forward.
+      const playbackRate = Math.round(Math.max(0.5, Math.min(maxPlaybackRate, gap * 8)) * 4) / 4;
+      if (Math.abs(video.playbackRate - playbackRate) >= 0.25) {
+        video.playbackRate = playbackRate;
+      }
+      if (video.paused && !playPending) {
+        playPending = true;
+        video.play().catch(() => {}).finally(() => {
+          playPending = false;
+          requestRender();
         });
       }
     }
 
-    function handleMobileSeeked() {
-      if (!smoothMobileSeeking) return;
-      mobileSeekInFlight = false;
-      if (duration > 0) {
-        updateChapter(video.currentTime / duration);
-      }
-      if (mobileSeekTargetTime !== null) {
-        scheduleMobileSeek();
-      }
-    }
-
-    function finishMobileScroll() {
-      if (!smoothMobileSeeking) return;
-      mobileSeekTargetTime = scrollProgress * duration;
-      scheduleMobileSeek();
-    }
-
-    function render(timestamp) {
+    function render() {
       frameRequested = false;
-      const targetProgress = getScrollProgress();
-      if (lastRenderTimestamp === null || reducedMotion.matches || duration <= 0) {
-        scrollProgress = targetProgress;
-      } else {
-        const elapsed = Math.min(0.05, (timestamp - lastRenderTimestamp) / 1000);
-        const difference = targetProgress - scrollProgress;
-        const easedStep = difference * (1 - Math.exp(-elapsed / 0.22));
-        const maxStep = (elapsed * maxScrollPlaybackRate) / duration;
-        scrollProgress += Math.sign(difference) * Math.min(Math.abs(easedStep), maxStep);
-      }
-      lastRenderTimestamp = timestamp;
+      scrollProgress = getScrollProgress();
 
-      const tiltFactor = reducedMotion.matches ? 0 : 1;
-      const pointerX = Number(stage.dataset.pointerX || 0);
-      const pointerY = Number(stage.dataset.pointerY || 0);
-      const scrollTilt = (scrollProgress - 0.5) * 1.5;
-      stage.style.setProperty("--parallax-x", `${(pointerX * 8 * tiltFactor).toFixed(1)}px`);
-      stage.style.setProperty("--parallax-y", `${(pointerY * 8 * tiltFactor).toFixed(1)}px`);
-      stage.style.setProperty("--copy-x", `${(pointerX * -9 * tiltFactor).toFixed(1)}px`);
-      stage.style.setProperty("--copy-y", `${(pointerY * -7 * tiltFactor).toFixed(1)}px`);
-      stage.style.setProperty(
-        "--video-tilt-x",
-        `${((scrollProgress - 0.5) * 0.8 - pointerY * tiltFactor * 1.2).toFixed(2)}deg`,
-      );
-      stage.style.setProperty("--video-tilt-y", `${(pointerX * tiltFactor * 1.6).toFixed(2)}deg`);
-      stage.style.setProperty("--video-scale", (1.045 + Math.abs(scrollTilt) * 0.012).toFixed(4));
-      stage.style.setProperty("--film-progress", scrollProgress.toFixed(4));
+      if (scrollProgress !== lastVisualProgress) {
+        stage.style.setProperty("--film-progress", scrollProgress.toFixed(4));
+        lastVisualProgress = scrollProgress;
+      }
 
       const nextProgressPercent = Math.round(scrollProgress * 100);
       if (nextProgressPercent !== progressPercent) {
@@ -313,14 +289,9 @@ export default function FilmExperience() {
         progressLabel.textContent = String(progressPercent).padStart(2, "0");
       }
 
-      const chapterProgress = smoothMobileSeeking && duration > 0
-        ? video.currentTime / duration
-        : scrollProgress;
-      updateChapter(chapterProgress);
-      seekToProgress(scrollProgress);
-      if (Math.abs(targetProgress - scrollProgress) > 0.0001) {
-        requestRender();
-      }
+      updateChapter(duration > 0 ? video.currentTime / duration : scrollProgress);
+      syncVideo();
+      if (!video.paused && !seekInFlight) requestRender();
     }
 
     function requestRender() {
@@ -330,18 +301,12 @@ export default function FilmExperience() {
     }
 
     function handleScroll() {
-      if (smoothMobileSeeking) {
-        window.clearTimeout(seekTimeout);
-        seekTimeout = window.setTimeout(finishMobileScroll, 140);
-      }
-      requestRender();
-    }
-
-    function handlePointerMove(event) {
-      if (reducedMotion.matches) return;
-      const bounds = stage.getBoundingClientRect();
-      stage.dataset.pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5).toFixed(3);
-      stage.dataset.pointerY = ((event.clientY - bounds.top) / bounds.height - 0.5).toFixed(3);
+      scrollSettled = false;
+      window.clearTimeout(settleTimerId);
+      settleTimerId = window.setTimeout(() => {
+        scrollSettled = true;
+        requestRender();
+      }, 140);
       requestRender();
     }
 
@@ -355,14 +320,8 @@ export default function FilmExperience() {
     const options = { signal: listeners.signal };
     window.addEventListener("scroll", handleScroll, { ...options, passive: true });
     window.addEventListener("resize", requestRender, options);
-    stage.addEventListener("pointermove", handlePointerMove, options);
-    stage.addEventListener("pointerleave", () => {
-      stage.dataset.pointerX = "0";
-      stage.dataset.pointerY = "0";
-      requestRender();
-    }, options);
     video.addEventListener("loadedmetadata", handleLoadedMetadata, options);
-    video.addEventListener("seeked", handleMobileSeeked, options);
+    video.addEventListener("seeked", handleSeeked, options);
     video.addEventListener("error", () => {
       videoError.hidden = false;
       console.error("The film video could not be decoded. The browser may not support this video format.");
@@ -374,11 +333,8 @@ export default function FilmExperience() {
     return () => {
       listeners.abort();
       window.cancelAnimationFrame(frameRequestId);
-      window.clearTimeout(mobileSeekTimerId);
-      window.clearTimeout(seekTimeout);
-      if (videoFrameCallbackId !== null && typeof video.cancelVideoFrameCallback === "function") {
-        video.cancelVideoFrameCallback(videoFrameCallbackId);
-      }
+      window.clearTimeout(seekTimerId);
+      window.clearTimeout(settleTimerId);
       chapterCopy.getAnimations().forEach((animation) => animation.cancel());
       processNote.getAnimations().forEach((animation) => animation.cancel());
       video.pause();
@@ -387,11 +343,19 @@ export default function FilmExperience() {
 
   return (
     <div ref={rootRef}>
+      <header className="site-nav">
+        <a className="site-nav-brand" href="#begin" aria-label="HMT home">
+          HMT
+        </a>
+        <nav className="site-nav-links" aria-label="Main navigation">
+          <a href="#film">THE FILM</a>
+        </nav>
+      </header>
       <main id="begin">
         <section ref={filmRef} className="film" id="film" aria-label="Scroll-controlled film">
           <div
             ref={stageRef}
-            className="film-stage"
+            className="film-stage film-stage--clean"
             data-copy-tone={chapters[0].tone}
             data-copy-align={chapters[0].copy.align}
             data-mobile-position={chapters[0].mobilePosition}
@@ -408,14 +372,10 @@ export default function FilmExperience() {
               playsInline
               aria-label="Full-screen film synchronized with page scroll"
             >
-              <source src="/HMT_0001-3120.mkv" type="video/x-matroska" />
+              <source src="/1011-scroll.mp4" type="video/mp4" />
               <source src="/hiii.mp4" type="video/mp4" />
             </video>
-            <div className="film-grade" aria-hidden="true" />
-            <div className="film-grain" aria-hidden="true" />
-            <div className="film-edge" aria-hidden="true" />
-
-            <div className="chapter-copy" aria-live="polite" aria-atomic="true">
+            <div className="chapter-copy" aria-hidden="true">
               <p className="chapter-kicker">
                 <span className="chapter-step">
                   <span data-step>00</span>
